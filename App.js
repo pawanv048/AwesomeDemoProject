@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,18 +17,20 @@ import {
   SafeAreaView,
   Pressable,
   Linking,
-  Platform
+  Platform,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 
 const { width, height } = Dimensions.get('screen');
 const Profile_men = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80';
 const img_1 = 'https://uxwing.com/wp-content/themes/uxwing/download/user-interface/plus-icon.png'
 const data = [
-  { id: 1, name: 'pawan',email: 'item1@gmail.com',salary: "5 lpa",phone: 12345, position: 'Mobile dev', picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"},
-  { id: 2, name: 'item1',email: 'item2@gmail.com',salary: "6 lpa",phone: 12645, position: 'web dev', picture: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"},
-  { id: 3, name: 'item2',email: 'item3@gmail.com',salary: "4 lpa",phone: 14345, position: 'web dev', picture: "https://images.unsplash.com/photo-1500048993953-d23a436266cf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80"},
-  { id: 4, name: 'item3',email: 'item4@gmail.com',salary: "7 lpa",phone: 19345, position: 'dev ops', picture: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"},
-  { id: 5, name: 'item4',email: 'item5@gmail.com',salary: "8 lpa",phone: 12545, position: 'student', picture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"},
+  { _id: 1, name: 'pawan', email: 'item1@gmail.com', salary: "5 lpa", phone: 12345, position: 'Mobile dev', picture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80" },
+  { _id: 2, name: 'item1', email: 'item2@gmail.com', salary: "6 lpa", phone: 12645, position: 'web dev', picture: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" },
+  { _id: 3, name: 'item2', email: 'item3@gmail.com', salary: "4 lpa", phone: 14345, position: 'web dev', picture: "https://images.unsplash.com/photo-1500048993953-d23a436266cf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80" },
+  { _id: 4, name: 'item3', email: 'item4@gmail.com', salary: "7 lpa", phone: 19345, position: 'dev ops', picture: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80" },
+  { _id: 5, name: 'item4', email: 'item5@gmail.com', salary: "8 lpa", phone: 12545, position: 'student', picture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80" },
 ]
 
 
@@ -46,10 +48,36 @@ const NoteProvider = ({ children }) => {
 
 const CreateEmployee = ({ navigation }) => {
 
+  const submitData = async () => {
+    console.log('button click')
+    await fetch('http://localhost:4000/send-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        salary,
+        phone,
+        position
+      })
+    })
+      .then(res => res.json())
+      .then((responseJson) => {
+        //Success 
+        console.log(responseJson);
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  }
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [salary, setSalary] = useState('')
+  const [position, setPosition] = useState('')
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -79,6 +107,12 @@ const CreateEmployee = ({ navigation }) => {
         style={styles.inputs}
         placeholder='Enter Salary'
       />
+      <TextInput
+        value={position}
+        onChangeText={(text) => setPosition(text)}
+        style={styles.inputs}
+        placeholder='Enter Position'
+      />
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         style={styles.btn}
@@ -86,7 +120,7 @@ const CreateEmployee = ({ navigation }) => {
         <Text style={styles.txt}>Upload Image</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => navigation.navigate('Profile')}
+        onPress={() => submitData()}
         style={styles.btn}
       >
         <Text style={styles.txt}>Save</Text>
@@ -138,9 +172,9 @@ const CreateEmployee = ({ navigation }) => {
 
 // PROFILE SCREEN
 
-const ProfileScreen = (props) => {
+const ProfileScreen = ({ navigation, route }) => {
 
-  const {id,name,position,salary,phone,picture,email} = props.route.params.item 
+  const { _id, name, position, salary, phone, email } = route.params.item
   //console.log('UserDetails =>', props.route.params.item)
   return (
     <View style={{ flex: 1 }}>
@@ -153,7 +187,7 @@ const ProfileScreen = (props) => {
             borderRadius: 50,
             marginRight: 10
           }}
-          source={{ uri: picture }}
+          source={{ uri: Profile_men }}
         />
       </View>
       <View style={styles.userName}>
@@ -212,7 +246,7 @@ const ProfileScreen = (props) => {
 // const renderList = data.map((item) => {
 //   return (
 //     <View 
-//       key={item.id}
+//       key={item._id}
 //       style={{
 //       //width: width,
 //       height: 100,
@@ -258,12 +292,25 @@ const headerOptions = {
 
 
 // HOME SCREEEN
-function HomeScreen(props) {
+function HomeScreen({ navigation }) {
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState([])
+
+  useEffect(() => {
+    fetch('http://localhost:4000/')
+      .then((res) => res.json())
+      .then((result) => {
+        setData(result)
+        setLoading(false)
+      })
+  }, [])
+
   //const data = useContext(NotesContext)
   const renderItems = ({ item, index }) => {
     return (
       <TouchableOpacity
-        onPress={() => props.navigation.navigate('Profile',{item})}
+        onPress={() => navigation.navigate('Profile', { item })}
         activeOpacity={1}
         style={{
           //width: width,
@@ -276,7 +323,7 @@ function HomeScreen(props) {
           margin: 10,
           borderRadius: 5
         }}
-        key={item.id}
+        key={item._id}
       >
         <Image style={{
           width: 50,
@@ -293,23 +340,31 @@ function HomeScreen(props) {
           <Text style={{
             fontWeight: '800'
           }}>{item.position}</Text>
-  
+
         </View>
       </TouchableOpacity>
     )
   }
 
   return (
-    <View>
-      {/* {renderList} */}
-      <FlatList
-        data={data}
-        renderItem={renderItems}
-        keyExtractor={item => item.id}
-        bounces={false}
-      />
+    <View style={{ flex: 1 }}>
+      <View >
+        {/* {renderList} */}
+        {loading ?
+          <ActivityIndicator size='large' color='#0000ff' />
+          : <FlatList
+            data={data}
+            renderItem={renderItems}
+            keyExtractor={item => item._id}
+            bounces={false}
+            style={{ margin: 20 }}
+            contentContainerStyle={{ paddingBottom: 60 }}
+            showsVerticalScrollIndicator={false}
+          />
+        }
+      </View>
       <TouchableOpacity
-        onPress={() => props.navigation.navigate('CreateEmployee')}
+        onPress={() => navigation.navigate('CreateEmployee')}
         style={{
           backgroundColor: 'red',
           padding: 10,
@@ -319,7 +374,7 @@ function HomeScreen(props) {
           borderRadius: 20,
           position: 'absolute',
           right: 20,
-          bottom: -100
+          bottom: 40
         }}>
         <Image source={{ uri: img_1 }}
           style={{
@@ -329,6 +384,7 @@ function HomeScreen(props) {
           }} />
         {/* <Text>button</Text> */}
       </TouchableOpacity>
+
     </View>
   );
 }
