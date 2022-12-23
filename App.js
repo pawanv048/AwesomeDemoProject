@@ -46,7 +46,26 @@ const NoteProvider = ({ children }) => {
 
 // Create Employee
 
-const CreateEmployee = ({ navigation }) => {
+const CreateEmployee = ({ navigation, route }) => {
+
+
+  const getDetails = (type) => {
+    if (route.params) {
+      switch (type) {
+        case "name":
+          return route.params.name
+        case "phone":
+          return route.params.phone
+        case "email":
+          return route.params.email
+        case "salary":
+          return route.params.salary
+        case "position":
+          return route.params.position
+      }
+    }
+    return ""
+  }
 
   const submitData = async () => {
     console.log('button click')
@@ -73,11 +92,39 @@ const CreateEmployee = ({ navigation }) => {
       })
   }
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [salary, setSalary] = useState('')
-  const [position, setPosition] = useState('')
+  const updateDetails = async() => {
+    await fetch('http://localhost:4000/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': "application/json"
+      },
+      body: JSON.stringify({
+        id: route.params._id,
+        name,
+        email,
+        salary,
+        phone,
+        position
+      })
+    })
+      .then(res => res.json())
+      .then((responseJson) => {
+        //Success 
+        Alert.alert(`${responseJson.name} is successfully updated`)
+        navigation.navigate('Home')
+        //console.log(responseJson);
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  }
+
+
+  const [name, setName] = useState(getDetails('name'))
+  const [email, setEmail] = useState(getDetails('phone'))
+  const [phone, setPhone] = useState(getDetails('email'))
+  const [salary, setSalary] = useState(getDetails('salary'))
+  const [position, setPosition] = useState(getDetails('position'))
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -119,12 +166,22 @@ const CreateEmployee = ({ navigation }) => {
       >
         <Text style={styles.txt}>Upload Image</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => submitData()}
-        style={styles.btn}
-      >
-        <Text style={styles.txt}>Save</Text>
-      </TouchableOpacity>
+      {route.params ?
+        <TouchableOpacity
+          onPress={() => updateDetails()}
+          style={styles.btn}
+        >
+          <Text style={styles.txt}>upload details</Text>
+        </TouchableOpacity>
+        :
+        <TouchableOpacity
+          onPress={() => submitData()}
+          style={styles.btn}
+        >
+          <Text style={styles.txt}>Save</Text>
+        </TouchableOpacity>
+      }
+
       <Modal
         style={{ width: width, height: height }}
         animationType={'slide'}
@@ -173,8 +230,28 @@ const CreateEmployee = ({ navigation }) => {
 // PROFILE SCREEN
 
 const ProfileScreen = ({ navigation, route }) => {
-
   const { _id, name, position, salary, phone, email } = route.params.item
+
+
+  const delteEmpy = async () => {
+    await fetch('http://localhost:4000/delete', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: _id,
+      }),
+    })
+      .then(res => res.json())
+      .then(deletEmp => {
+        console.log('show empolye=>', deletEmp)
+        Alert.alert(` ${deletEmp.name}deleted successfully`)
+        navigation.navigate('Home')
+      }).catch((e) => {
+        Alert.alert('something went wrong')
+      })
+  };
+
+
   //console.log('UserDetails =>', props.route.params.item)
   return (
     <View style={{ flex: 1 }}>
@@ -213,8 +290,17 @@ const ProfileScreen = ({ navigation, route }) => {
           <Text>{salary}</Text>
         </TouchableOpacity>
 
-        <View style={{ marginVertical: 40, marginHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View
+          style={{
+            marginVertical: 40,
+            marginHorizontal: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
           <TouchableOpacity
+            onPress={() => navigation.navigate('CreateEmployee',
+              { _id, name, phone, salary, email, position }
+            )}
             style={{
               backgroundColor: 'blue',
               padding: 15,
@@ -227,6 +313,7 @@ const ProfileScreen = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => delteEmpy()}
             style={{
               backgroundColor: 'blue',
               padding: 15,
@@ -295,15 +382,21 @@ const headerOptions = {
 function HomeScreen({ navigation }) {
 
   const [data, setData] = useState([])
-  const [loading, setLoading] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchData = () => {
     fetch('http://localhost:4000/')
       .then((res) => res.json())
       .then((result) => {
         setData(result)
         setLoading(false)
+      }).catch((err) => {
+        Alert.alert('Something went wrong')
       })
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   //const data = useContext(NotesContext)
@@ -350,18 +443,19 @@ function HomeScreen({ navigation }) {
     <View style={{ flex: 1 }}>
       <View >
         {/* {renderList} */}
-        {loading ?
-          <ActivityIndicator size='large' color='#0000ff' />
-          : <FlatList
-            data={data}
-            renderItem={renderItems}
-            keyExtractor={item => item._id}
-            bounces={false}
-            style={{ margin: 20 }}
-            contentContainerStyle={{ paddingBottom: 60 }}
-            showsVerticalScrollIndicator={false}
-          />
-        }
+
+        <FlatList
+          data={data}
+          renderItem={renderItems}
+          keyExtractor={item => item._id}
+          bounces={true}
+          style={{ margin: 20 }}
+          contentContainerStyle={{ paddingBottom: 60 }}
+          showsVerticalScrollIndicator={false}
+          onRefresh={() => fetchData()}
+          refreshing={loading}
+        />
+
       </View>
       <TouchableOpacity
         onPress={() => navigation.navigate('CreateEmployee')}
