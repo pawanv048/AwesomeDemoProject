@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useReducer } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
+import { Provider } from 'react-redux';
+import { reducer, initState} from './reducers/reducers';
+
 
 import {
   Button,
@@ -36,13 +39,13 @@ const data = [
 
 const NotesContext = createContext()
 
-const NoteProvider = ({ children }) => {
-  return (
-    <NotesContext.Provider value={10}>
-      {children}
-    </NotesContext.Provider>
-  )
-}
+// const NoteProvider = ({ children }) => {
+//   return (
+//     <NotesContext.Provider value={10}>
+//       {children}
+//     </NotesContext.Provider>
+//   )
+// }
 
 // Create Employee
 
@@ -381,6 +384,9 @@ const headerOptions = {
 // HOME SCREEEN
 function HomeScreen({ navigation }) {
 
+  // const {state, dispatch} = useContext(NotesContext)
+  // const {data,loading} = state
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -390,6 +396,9 @@ function HomeScreen({ navigation }) {
       .then((result) => {
         setData(result)
         setLoading(false)
+
+        // dispatch({type:"ADD_DATA",payload:result})
+        // dispatch({type:"SET_LOADING",payload:false})
       }).catch((err) => {
         Alert.alert('Something went wrong')
       })
@@ -500,8 +509,11 @@ function DetailsScreen({ navigation }) {
 const Stack = createNativeStackNavigator();
 
 function App() {
+
+ const[state,dispatch] = useReducer(reducer,initState)
+
   return (
-    <NoteProvider>
+    <NotesContext.Provider value={{state,dispatch}}>
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} options={headerOptions} />
@@ -513,7 +525,7 @@ function App() {
           <Stack.Screen name='Profile' component={ProfileScreen} options={{ ...headerOptions, title: 'Profile' }} />
         </Stack.Navigator>
       </NavigationContainer>
-    </NoteProvider>
+    </NotesContext.Provider>
   );
 }
 
