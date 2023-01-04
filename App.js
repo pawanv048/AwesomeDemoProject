@@ -1,224 +1,265 @@
-import React, { createContext, useContext, useReducer, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import {
   StyleSheet,
   Text,
   View,
-  Button,
-  FlatList,
+  Image,
   TouchableOpacity,
-  TextInput
+  FlatList,
+  Animated,
+  Dimensions,
+  
 } from 'react-native';
 
-
+const {width, height} =  Dimensions.get('window');
 
 const Stack = createNativeStackNavigator();
-const NotesContext = createContext();
 
-
-const NotesProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(NotesReducer, initialState)
-  return (
-    <NotesContext.Provider value={{ state, dispatch }}>
-      {children}
-    </NotesContext.Provider>
-  )
-}
-
-const initialState = [
-
+const data = [
+  { id: 1, imge: 'https://cdn.pixabay.com/photo/2016/03/27/18/53/drinks-1283608_960_720.jpg' },
+  { id: 2, imge: 'https://cdn.pixabay.com/photo/2016/08/10/15/50/football-1583642_960_720.jpg' },
+  { id: 3, imge: 'https://cdn.pixabay.com/photo/2022/11/29/08/54/race-car-7624025_960_720.jpg' },
+  { id: 4, imge: 'https://cdn.pixabay.com/photo/2017/05/25/15/08/jogging-2343558_960_720.jpg' },
+  { id: 5, imge: 'https://cdn.pixabay.com/photo/2016/11/22/23/40/hands-1851218_960_720.jpg' },
+  { id: 6, imge: 'https://cdn.pixabay.com/photo/2018/03/30/17/34/perfume-3275960_960_720.jpg' },
+  { id: 7, imge: 'https://cdn.pixabay.com/photo/2016/10/06/22/29/headphones-1720164_960_720.jpg' },
+  { id: 8, imge: 'https://cdn.pixabay.com/photo/2014/07/31/21/37/bar-406884_960_720.jpg' }
 ]
 
-//action is like a function in reducer when state change function execute
-const NotesReducer = (state, { type, payload }) => {
-  switch (type) {
-    case "ADD":
-      // return [...state, { id: Math.random(), title: `title: ${state.length + 1}` }]
-      return [
-        ...state, {
-          id: Math.random(),
-          title: payload.title,
-          content: payload.content
-        }
-      ]
-    case "REMOVE":
-      return state.filter((note) => payload !== note.id)
-    default:
-      return state
-  }
+const images = {
+  img_1: 'https://www.freeiconspng.com/uploads/blue-letter-m-icon-png-12.png',
+
+}
+const String = {
+  title_1: `Welcome to ${'\n'} Margaret`,
+
 }
 
+const walkthrough = [
+  {
+    id: 0,
+    title: "Genuine product",
+    sub_title: "Diversified items of products in life, genuine product, safe",
+  },
+  {
+    id: 1,
+    title: "Convenient ordering",
+    sub_title: "Order multiple items from multiple brands at the same time",
+  },
+  {
+    id: 2,
+    title: "Easy search",
+    sub_title: "Find products easy with Scanning camera, pay with just one camera scan",
+  },
+  {
+    id: 3,
+    title: "Super fast delivery",
+    sub_title: "Delivery within the next day including Saturday and Sunday",
+  },
+]
 
-const ListNoteScreen = ({ navigation }) => {
+//Walkthrough
 
-  const {state,dispatch} = useContext(NotesContext)
-  return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        data={state}
-        keyExtractor={item => item.id}
-        //style={{backgroundColor: 'red'}}
+const WalkthroughScreen = () => {
+
+  function renderHeader() {
+    return (
+      <View style={{ marginVertical: '40%' }}>
+        <FlatList data={data}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ paddingHorizontal: 10 }}
+          horizontal
+          renderItem={({ item }) => {
+            return (
+              <View style={{ marginHorizontal: 5 }}>
+                <Image source={{ uri: item.imge }}
+                  style={{
+                    width: 90,
+                    height: 90,
+                    borderRadius: 5
+                  }}
+                />
+              </View>
+            )
+          }}
+        />
+        <FlatList data={data}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ paddingHorizontal: 10 }}
+          horizontal
+          renderItem={({ item }) => {
+            return (
+              <View style={{ marginHorizontal: 5, marginTop: 15 }}>
+                <Image source={{ uri: item.imge }}
+                  style={{
+                    width: 90,
+                    height: 90,
+                    borderRadius: 5
+                  }}
+                />
+              </View>
+            )
+          }}
+        />
+
+
+      </View>
+    )
+  };
+
+  // const renderDescription = () => {
+  //   return (
+  //     <View style={{ alignItems: 'center' }}>
+  //       <Text
+  //         style={{
+  //           marginBottom: 20,
+  //           fontSize: 25,
+  //           fontWeight: 'bold'
+  //         }}>{String.title_2}</Text>
+  //       <Text style={{
+  //         textAlign: 'center',
+  //         fontSize: 12,
+  //         fontWeight: '300'
+  //       }}>{String.desc_1}</Text>
+  //     </View>
+  //   )
+  // }
+
+  const scrollx = React.useRef(new Animated.Value(0)).current;
+
+  function renderFooter() {
+    return (
+      <Animated.FlatList
+        data={walkthrough}
+        keyExtractor={(item) => `${item.id}`}
+        horizontal
+        showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => {
           return (
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingRight: 100,
-              alignItems: 'center',
-              marginVertical: 10,
-              display: 'flex',
-              alignSelf: 'auto',
-              
-            }}>
-
-              <Text
-                style={{
-                  fontSize: 20,
-                  marginRight: 40,
-                  marginLeft: 18,
-                  color: 'black'
-                }}>
-                {item.title}
-              </Text>
-              {/* <Text style={{ fontSize: 10}}>{item.id}</Text> */}
-
-              <TouchableOpacity
-                onPress={() => dispatch({ type: "REMOVE", payload: item.id })}
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: 'blue',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 10
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>-</Text>
-              </TouchableOpacity>
+            <View
+              style={{
+                alignItems: 'center',
+                width: width ,
+                justifyContent: 'center'
+              }}>
+              <Text style={{
+                fontSize: 25,
+                fontWeight: '700',
+                marginBottom: 10
+              }}>{item.title}</Text>
+              <Text style={{
+                textAlign: 'center'
+              }}
+               >{item.sub_title}</Text>
             </View>
-
           )
         }}
       />
+    )
+  };
 
-      <TouchableOpacity
-        //onPress={() => dispatch({ type: 'ADD' })}
-        onPress={() => navigation.navigate('create')}
-        style={{
-          width: 60,
-          height: 60,
-          backgroundColor: 'blue',
-          borderRadius: 30,
-          justifyContent: 'center',
-          alignItems: 'center',
-          position: 'absolute',
-          bottom: 80,
-          right: 20
-        }}
-      >
-        <Text style={{ fontSize: 30, color: '#fff' }}>+</Text>
-      </TouchableOpacity>
-    </View>
-  )
-}
 
-const ShowNotes = ({route}) => {
-  
-  const {id} = route.params
-  return(
-    <View>
-      <Text>{id}</Text>
-    </View>
-  )
-}
 
-const CreateNoteScreen = ({navigation}) => {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const { state, dispatch } = useContext(NotesContext)
+
+
   return (
     <View>
-      <Text style={styles.text}>Enter Title</Text>
-      <TextInput
-        style={styles.input}
-        // value={title}
-        setTitle={(text) => setTitle(text)}
-      />
-      <Text style={styles.text}>Enter Content</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        // value={content}
-        setTitle={(text) => setContent(text)}
-        numberOfLines={3}
-        multiline={true}
-      />
-      <TouchableOpacity
-        onPress={() => {
-          dispatch({type:"ADD",payload:{title,content}})
-          navigation.goBack()
-        }}
+      {renderHeader()}
+      {/* {renderDescription()} */}
+      {renderFooter()}
+    </View>
+  )
+}
+
+// WELCOME
+const WelcomeScreen = () => {
+  const navigation = useNavigation();
+
+  const renderHeader = () => {
+    return (
+      <View
         style={{
-          height: 50,
-          margin: 20,
-          alignItems: 'center',
+          flex: 1,
           justifyContent: 'center',
-          backgroundColor: 'blue',
-          borderRadius: 10
-        }}
-      >
-        <Text style={{ color: 'white', fontSize: 15, fontWeight: '800' }}>Save</Text>
-      </TouchableOpacity>
+          alignItems: 'center',
+
+        }}>
+        <Image source={{ uri: images.img_1 }}
+          style={{
+            width: 200,
+            height: 200,
+            //backgroundColor: 'red',
+            //tintColor: 'blue'
+          }}
+        />
+        <Text style={{
+          fontSize: 25,
+          fontWeight: 'bold',
+          textAlign: 'center'
+        }}>{String.title_1}</Text>
+      </View>
+    )
+  };
+
+  const renderFooter = () => {
+    return (
+      <View style={{ paddingTop: 0 }}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('walkthrough')}
+          style={{
+            backgroundColor: 'rgb(63,75,183)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: 40,
+            borderRadius: 10,
+            marginTop: 40,
+            padding: 15
+          }}
+        >
+          <Text style={{
+            color: 'rgb(142,213,239)',
+            fontWeight: 'bold'
+          }}>Get Started</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={{
+            textAlign: 'center',
+            marginVertical: 20,
+            color: 'rgb(72,83,167)',
+            lineHeight: 30,
+            fontSize: 12,
+            fontWeight: '700'
+          }}>Already have an account</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
+
+
+  return (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {renderHeader()}
+      {renderFooter()}
     </View>
   )
 }
 
 const App = () => {
+
   return (
-    <NotesProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name='ListNoteScreen' component={ListNoteScreen}
-            options={{
-              headerTitleAlign: 'center',
-              title: 'All Notes'
-            }}
-          />
-          <Stack.Screen name='create' component={CreateNoteScreen}
-            options={{
-              headerTitleAlign: 'center',
-              title: 'Create Notes'
-            }}
-          />
-           <Stack.Screen name='show' component={ShowNotes}
-            options={{
-              headerTitleAlign: 'center',
-              title: 'Show Notes'
-            }}
-          />
-         
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NotesProvider>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name='welcome' component={WelcomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name='walkthrough' component={WalkthroughScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }
 
 export default App
 
-const styles = StyleSheet.create({
-  input: {
-    //width: '100%',
-    fontSize:14,
-    height: 50,
-    margin: 20,
-    paddingLeft: 10,
-    borderColor: 'blue',
-    borderWidth: 1
-  },
-  text: {
-    marginLeft: 20,
-    marginTop: 10,
-    fontSize: 15,
-    fontWeight: '600'
-  }
-})
+const styles = StyleSheet.create({})
